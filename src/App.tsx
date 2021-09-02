@@ -3,6 +3,9 @@ import useData from './hooks/useData';
 import useColumns from './hooks/useColumns';
 import { useTable, useSortBy, usePagination } from 'react-table';
 import { FaCaretSquareUp, FaCaretSquareDown } from "react-icons/fa";
+//@ts-ignore
+import { useExportData } from 'react-table-plugins';
+import Papa from 'papaparse';
 import './App.css';
 
 // interface BugProps {
@@ -163,6 +166,13 @@ const getTableHeaders : Function = (userInfos : Array<UserInfo>) : Array<string>
 //     </div>
 //   );
 // }
+//@ts-ignore
+function getExportFileBlob({ columns, data }) {
+  //@ts-ignore
+  const headerNames = columns.map(col => col.exportValue);
+  const csvString = Papa.unparse({ fields: headerNames, data });
+  return new Blob([csvString], { type: "text/csv" });
+}
 
 const App: FC = () : JSX.Element => {
 
@@ -189,10 +199,12 @@ const App: FC = () : JSX.Element => {
     //@ts-ignore
     pageOptions,
     //@ts-ignore
-    state: {pageIndex, pageSize}
+    state: {pageIndex, pageSize},
+    //@ts-ignore
+    exportData
   } = 
   //@ts-ignore
-  useTable({columns, data, initialState: {pageSize: 10}}, useSortBy, usePagination)
+  useTable({columns, data, initialState: {pageSize: 10}, getExportFileBlob}, useSortBy, usePagination, useExportData)
 
   return (
     <div className="container">
@@ -240,6 +252,9 @@ const App: FC = () : JSX.Element => {
           <button disabled={!canNextPage} onClick={() => nextPage()}>next page</button>
         </div>
         <div>Page {pageIndex + 1} of {pageOptions.length}</div>
+        <div>
+          <button onClick={() => exportData("csv")}>Export CSV</button>
+        </div>
       </div>
     </div>
   );
